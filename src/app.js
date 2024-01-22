@@ -8,7 +8,10 @@ const patternName = /^[a-zA-z]{3,11}$/
 const patternAge = /^[0-9]{0,3}$/
 const patternCpf = /^[0-9]{11}$/
 
+
 let people = []
+let idSetTimeOut = null
+let isAddPerson = true
 
 const changeColorByCheck = (pattern, input) => {
     const result = pattern.test(input.value)
@@ -43,18 +46,89 @@ const resetSpan = () => {
     span.removeAttribute('class')
 }
 
-const changeSpan = (boolean, txt) => {
-    if (boolean) {
-        span.textContent = txt
-        span.setAttribute('class', 'sucess')
+const changeSpan = (op, txt) => {
+
+    span.textContent = txt
+
+    switch (op) {
+        case 'sucess':
+            span.setAttribute('class', 'sucess')
+            return
+        case 'warning':
+            span.setAttribute('class', 'warning')
+            return
+    }
+
+    span.toggleAttribute('class')
+
+}
+
+
+const clearInput = () => {
+    const inputs = form.querySelectorAll('input')
+    inputs.forEach(input => input.value = '')
+}
+
+const checkCpfUsed = (cpf) => people.some(person => person.cpf === cpf)
+
+const resetTimeout = () => {
+    if (idSetTimeOut) {
+        clearTimeout(idSetTimeOut)
+        idSetTimeOut = null
+    }
+}
+
+const changeSpanAndThrowTimeout = (className, txt) => {
+    changeSpan(className, txt)
+    idSetTimeOut = setTimeout(resetSpan, 3000)
+}
+
+const addPerson = (person) => {
+    const { name } = person
+    const nameUpperCase = name.toUpperCase()
+    people.push(person)
+    changeSpanAndThrowTimeout('sucess', `Person ${nameUpperCase} registered`)
+    clearInput()
+}
+
+const changeIsAddPerson = () => isAddPerson = !isAddPerson
+
+const changeTextBtnForm = (txt) => {
+    const btn = form.querySelector('button')
+    btn.textContent = txt
+}
+
+const toggleDisableInputs = () => {
+    const inputCpf = form.cpf
+
+    inputCpf.toggleAttribute('disabled')
+    button.toggleAttribute('disabled')
+
+    if (!isAddPerson) {
+        inputCpf.style.backgroundColor = 'grey'
         return
     }
 
-    span.textContent = txt
-    span.setAttribute('class', 'warning')
+    inputCpf.style.backgroundColor = 'white'
 }
 
-const addPerson = (event) => {
+const alterFunction = (classCss, txt, txtbtn) => {
+    changeIsAddPerson()
+    toggleDisableInputs()
+    changeTextBtnForm(txtbtn)
+    changeSpan(classCss, txt)
+}
+
+const alterPerson = ({ name, age, cpf }) => {
+    const person = people.find(person => person.cpf === cpf)
+    person.name = name
+    person.age = age
+    alterFunction('sucess', `Person ${name} successfully changed`, 'add person')
+    idSetTimeOut = setTimeout(resetSpan, 3000)
+    clearInput()
+}
+
+const handleSubmit = (event) => {
     event.preventDefault()
 
     const name = form.name.value
@@ -66,22 +140,20 @@ const addPerson = (event) => {
     const isAge = patternAge.test(age)
 
     const isPerson = isName && isCpf && isAge
-    const cpfUsed = people.some(person => person.cpf === cpf)
-    const isChecked = isPerson && !cpfUsed
+    const iscpfUsed = checkCpfUsed(cpf)
+    const person = { name, age, cpf }
 
-    if (isChecked) {
-        const person = { name, age, cpf }
-        const nameUpperCase = name.toUpperCase()
+    resetTimeout()
 
-        people.push(person)
-        changeSpan(isChecked, `Person ${nameUpperCase} registered`)
-        setTimeout(resetSpan, 3000)
-
+    if (isAddPerson && isPerson && !iscpfUsed) {
+        addPerson(person)
+        return
+    } else if (!isAddPerson && isPerson && iscpfUsed) {
+        alterPerson(person)
         return
     }
 
-    changeSpan(isChecked, `Invalid Data!`)
-    setTimeout(resetSpan, 3000)
+    changeSpanAndThrowTimeout('warning', `Invalid Data!`)
 
 
 }
@@ -102,9 +174,9 @@ const assemblyLines = () => {
     return s
 }
 
-const createTable = () =>{
+const createTable = () => {
     const lines = assemblyLines()
-        containerTable.innerHTML = `<table>
+    containerTable.innerHTML = `<table>
         <thead>
           <tr>
             <th>Name</th>
@@ -119,7 +191,7 @@ const createTable = () =>{
       </table>`
 }
 
-const insertSpan = () =>{
+const insertSpan = () => {
     const isSpan = containerTable.querySelector('span')
     if (!isSpan) {
         const span = document.createElement('span')
@@ -133,30 +205,40 @@ const insertSpan = () =>{
 const handleButtonViewPeople = () => {
     divListPeople.style.display = 'flex'
     if (people.length > 0) {
-       createTable()
+        createTable()
         return
     }
     insertSpan()
-    
+
 }
 
-const desativeList = (event) => {
+const desativeList = () => {
+    divListPeople.style.display = 'none'
+}
+
+const desativeListCheck = (event) => {
     const className = event.target.classList[0]
     if (className === 'list-people') {
-        divListPeople.style.display = 'none'
+        desativeList()
 
     }
 }
 
 
-const deletePerson = (element) =>{
-
+const getCpfTd = (element) => {
     const parentElement = element.parentNode
     const previousSibling = parentElement.previousElementSibling
-    people = people.filter(person => person.cpf !== previousSibling.textContent)
+    const cpf = previousSibling.textContent
+    return cpf
+}
+
+const deletePerson = element => {
+
+    const cpf = getCpfTd(element)
+    people = people.filter(person => person.cpf !== cpf)
     const isGreatThanZero = people.length > 0
 
-    if(isGreatThanZero){
+    if (isGreatThanZero) {
         createTable()
         return
     }
@@ -164,6 +246,28 @@ const deletePerson = (element) =>{
     containerTable.innerHTML = ''
     insertSpan()
 }
+
+
+const changeInputWithPerson = ({ name, age, cpf }) => {
+    form.name.value = name
+    form.age.value = age
+    form.cpf.value = cpf
+}
+
+
+const getPersonToForm = element => {
+    const cpf = getCpfTd(element)
+    const person = people.find(person => person.cpf === cpf)
+
+    if (person) {
+        desativeList()
+        changeInputWithPerson(person)
+        alterFunction(null, `Alter person ${person.name}`, 'Alter person')
+        resetTimeout()
+    }
+
+}
+
 
 const handleClickContainerTable = (event) => {
     const elementClicked = event.target
@@ -174,13 +278,14 @@ const handleClickContainerTable = (event) => {
             deletePerson(elementClicked)
             return
         case 'sucess':
+            getPersonToForm(elementClicked)
             return
     }
 
 }
 
 form.addEventListener('keyup', handleKeyup)
-form.addEventListener('submit', addPerson)
+form.addEventListener('submit', handleSubmit)
 button.addEventListener('click', handleButtonViewPeople)
-divListPeople.addEventListener('click', desativeList)
-containerTable.addEventListener('click',handleClickContainerTable)
+divListPeople.addEventListener('click', desativeListCheck)
+containerTable.addEventListener('click', handleClickContainerTable)
