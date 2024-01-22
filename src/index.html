@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
+    <link rel="stylesheet" href="style.css">
+    <title>Crud</title>
+</head>
+
+<body>
+
+    <h1>Crud People</h1>
+    <form>
+        <div class='span-container'>
+            <span id="alert"></span>
+        </div>
+        <label>Name</label>
+        <input name="name" placeholder="First Name..." required>
+        <label>Age</label>
+        <input name="age" placeholder="Ex: 18"  required>
+        <label>Cpf</label>
+        <input name="cpf" placeholder="11 numbers..." required>
+        <div class="btn-wrapper">
+            <button class="button">add person</button>
+        </div>
+     
+    </form>
+
+    <div class="btn-wrapper">
+        <button class="button button-outline">View people</button>
+    </div>
+
+    <div class="list-people">
+        <div class="container-table">
+            
+        </div>
+    </div>
+
+
+
+    <script src="app.js"></script>
+</body>
+
+</html>
