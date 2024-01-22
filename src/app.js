@@ -121,9 +121,10 @@ const alterFunction = (classCss, txt, txtbtn) => {
 
 const alterPerson = ({ name, age, cpf }) => {
     const person = people.find(person => person.cpf === cpf)
+    const previousName = person.name
     person.name = name
     person.age = age
-    alterFunction('sucess', `Person ${name} successfully changed`, 'add person')
+    alterFunction('sucess', `Person ${previousName} successfully changed`, 'add person')
     idSetTimeOut = setTimeout(resetSpan, 3000)
     clearInput()
 }
